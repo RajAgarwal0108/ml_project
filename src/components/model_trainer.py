@@ -13,6 +13,9 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
 from xgboost import XGBRegressor
 
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV
+
 from src.exception import CustomException
 from src.logger import logging
 
@@ -39,17 +42,49 @@ class ModelTrainer:
                 test_array[:,-1]
             )
             models = {
-                "Random Forests" : RandomForestRegressor(),
-                "Decision Tree" : DecisionTreeRegressor(),
-                "Gradient Boosting" : GradientBoostingRegressor(),
-                "Linear Regression" : LinearRegression(),
-                "K- Neighour Regressor" : KNeighborsRegressor(),
-                "XBG Regressor" : XGBRegressor(),
-                "Adaboost Regressor" : AdaBoostRegressor(),
+                "Random Forest": RandomForestRegressor(),
+                "Decision Tree": DecisionTreeRegressor(),
+                "Gradient Boosting": GradientBoostingRegressor(),
+                "Linear Regression": LinearRegression(),
+                "XGBRegressor": XGBRegressor(),
+                "AdaBoost Regressor": AdaBoostRegressor(),
+            }
+
+            params={
+                "Decision Tree": {
+                    'criterion':['squared_error', 'friedman_mse', 'absolute_error', 'poisson'],
+                    # 'splitter':['best','random'],
+                    # 'max_features':['sqrt','log2'],
+                },
+                "Random Forest":{
+                    # 'criterion':['squared_error', 'friedman_mse', 'absolute_error', 'poisson'],
+                 
+                    # 'max_features':['sqrt','log2',None],
+                    'n_estimators': [8,16,32,64,128,256]
+                },
+                "Gradient Boosting":{
+                    # 'loss':['squared_error', 'huber', 'absolute_error', 'quantile'],
+                    'learning_rate':[.1,.01,.05,.001],
+                    'subsample':[0.6,0.7,0.75,0.8,0.85,0.9],
+                    # 'criterion':['squared_error', 'friedman_mse'],
+                    # 'max_features':['auto','sqrt','log2'],
+                    'n_estimators': [8,16,32,64,128,256]
+                },
+                "Linear Regression":{},
+                "XGBRegressor":{
+                    'learning_rate':[.1,.01,.05,.001],
+                    'n_estimators': [8,16,32,64,128,256]
+                },
+                "AdaBoost Regressor":{
+                    'learning_rate':[.1,.01,0.5,.001],
+                    # 'loss':['linear','square','exponential'],
+                    'n_estimators': [8,16,32,64,128,256]
+                }
+                
             }
 
             model_report : dict = evaluate_models(
-                X_train = X_train,y_train=y_train,X_test = X_test,y_test=y_test,models = models)
+                X_train = X_train,y_train=y_train,X_test = X_test,y_test=y_test,models = models,param = params)
 
             best_model_score = max(sorted(model_report.values()))
 
@@ -77,3 +112,5 @@ class ModelTrainer:
         except Exception as e :
             raise CustomException(e,sys)
 
+
+        
